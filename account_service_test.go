@@ -2,14 +2,13 @@ package go_tdd_workshop
 
 import "testing"
 
-//- [ ] can work with a database
 //- [ ] can't have empty or invalid account id
 //- [ ] can't have more than a maximum deposit
 //- [ ] can't have more than a maximum withdraw
 
 func TestAccountService(t *testing.T) {
 	t.Run("can deposit money into account", func(t *testing.T) {
-		accountService := NewAccountService()
+		accountService := NewAccountService(NewFakeDB())
 		accountService.Deposit("", 5)
 
 		want := 5
@@ -20,7 +19,7 @@ func TestAccountService(t *testing.T) {
 	})
 
 	t.Run("can withdraw money from account", func(t *testing.T) {
-		accountService := NewAccountService()
+		accountService := NewAccountService(NewFakeDB())
 		accountService.Deposit("", 5)
 		accountService.Withdraw("", 4)
 
@@ -32,7 +31,7 @@ func TestAccountService(t *testing.T) {
 	})
 
 	t.Run("can't have negative balance", func(t *testing.T) {
-		accountService := NewAccountService()
+		accountService := NewAccountService(NewFakeDB())
 		accountService.Deposit("", 5)
 		err := accountService.Withdraw("", 6)
 
@@ -43,7 +42,7 @@ func TestAccountService(t *testing.T) {
 	})
 
 	t.Run("can't have more than a 100000 balance", func(t *testing.T) {
-		accountService := NewAccountService()
+		accountService := NewAccountService(NewFakeDB())
 		err := accountService.Deposit("", 100001)
 
 		want := "too rich"
@@ -53,7 +52,7 @@ func TestAccountService(t *testing.T) {
 	})
 
 	t.Run("can handle different customers (account ids)", func(t *testing.T) {
-		accountService := NewAccountService()
+		accountService := NewAccountService(NewFakeDB())
 
 		accountService.Deposit("account_id1", 5)
 		accountService.Deposit("account_id2", 10)
@@ -70,4 +69,32 @@ func TestAccountService(t *testing.T) {
 			t.Errorf("got %d but want %d", got2, want2)
 		}
 	})
+
+	t.Run("can work with a database", func(t *testing.T) {
+		accountService := NewAccountService(NewFakeDB())
+
+		accountService.Deposit("", 5)
+
+		want := 5
+		got := accountService.getBalance("")
+		if got != want {
+			t.Errorf("got %d but want %d", got, want)
+		}
+	})
+}
+
+type fakeDb struct {
+	balance map[string]int
+}
+
+func (f *fakeDb) GetBalanceByAccountId(accountId string) int {
+	return f.balance[accountId]
+}
+
+func (f *fakeDb) UpdateBalanceByAccountId(accountId string, amount int) {
+	f.balance[accountId] += amount
+}
+
+func NewFakeDB() DB {
+	return &fakeDb{make(map[string]int)}
 }
