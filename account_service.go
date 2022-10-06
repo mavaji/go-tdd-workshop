@@ -6,8 +6,13 @@ type AccountService struct {
 	balance int
 }
 
-func (s *AccountService) Deposit(amount int) {
+func (s *AccountService) Deposit(amount int) error {
+	if s.balance+amount > 100000 {
+		return errors.New("too rich")
+	}
+
 	s.balance += amount
+	return nil
 }
 
 func (s *AccountService) getBalance() int {

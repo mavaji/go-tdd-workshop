@@ -2,7 +2,6 @@ package go_tdd_workshop
 
 import "testing"
 
-//- [ ] can't have more than a maximum balance
 //- [ ] can handle different customers (account ids)
 //- [ ] can work with a database
 //- [ ] can't have empty or invalid account id
@@ -39,6 +38,16 @@ func TestAccountService(t *testing.T) {
 		err := accountService.Withdraw(6)
 
 		want := "insufficient funds"
+		if err == nil {
+			t.Errorf("expected error %s but got nil", want)
+		}
+	})
+
+	t.Run("can't have more than a 100000 balance", func(t *testing.T) {
+		accountService := NewAccountService()
+		err := accountService.Deposit(100001)
+
+		want := "too rich"
 		if err == nil {
 			t.Errorf("expected error %s but got nil", want)
 		}
